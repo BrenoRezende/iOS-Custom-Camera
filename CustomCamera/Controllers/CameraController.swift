@@ -11,12 +11,51 @@ import UIKit
 
 class CameraController : UIViewController {
     
+    let captureSession = AVCaptureSession()
+    var previewLayer: CALayer!
+    var captureDevice: AVCaptureDevice!
+    
     override func viewDidLoad() {
         
         customizeLayout()
+        prepareCamera()
+    }
+    
+    func prepareCamera() {
+        captureSession.sessionPreset = AVCaptureSession.Preset.photo
+        
+        let availableDevices = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera], mediaType: AVMediaType.video, position: .back).devices
+        
+        captureDevice = availableDevices.first
+        beginSession()
+    }
+    
+    func beginSession() {
+        do {
+            let captureDeviceInput = try AVCaptureDeviceInput(device: captureDevice)
+            captureSession.addInput(captureDeviceInput)
+            
+            self.previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
+            self.view.layer.addSublayer(self.previewLayer)
+            self.previewLayer.frame = self.view.layer.frame
+            
+            captureSession.startRunning()
+            
+            let dataOutput = AVCaptureVideoDataOutput()
+            dataOutput.videoSettings = [(kCVPixelBufferPixelFormatTypeKey as NSString): NSNumber(value: kCVPixelFormatType_32BGRA)] as [String : Any]
+            dataOutput.alwaysDiscardsLateVideoFrames = true
+            
+            if captureSession.canAddOutput(dataOutput) {
+                captureSession.addOutput(dataOutput)
+            }
+            
+            captureSession.commitConfiguration()
+        } catch {
+            print("Error: \(error.localizedDescription)")
+        }
     }
     
     func customizeLayout() {
-        self.view.backgroundColor = #colorLiteral(red: 0.1215686277, green: 0.01176470611, blue: 0.4235294163, alpha: 1)
+        self.view.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
     }
 }
