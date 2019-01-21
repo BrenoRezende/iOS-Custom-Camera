@@ -9,7 +9,7 @@
 import AVFoundation
 import UIKit
 
-class CameraController : UIViewController {
+class CameraController : UIViewController, AVCaptureVideoDataOutputSampleBufferDelegate {
     
     let captureSession = AVCaptureSession()
     var previewLayer: CALayer!
@@ -36,8 +36,10 @@ class CameraController : UIViewController {
             captureSession.addInput(captureDeviceInput)
             
             self.previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
+            
             self.view.layer.addSublayer(self.previewLayer)
-            self.previewLayer.frame = self.view.layer.frame
+            
+            self.previewLayer.frame = self.view.frame
             
             captureSession.startRunning()
             
@@ -50,9 +52,18 @@ class CameraController : UIViewController {
             }
             
             captureSession.commitConfiguration()
+            
+            let queue = DispatchQueue(label: "brezende.captureQueue")
+            dataOutput.setSampleBufferDelegate(self, queue: queue)
+            
         } catch {
             print("Error: \(error.localizedDescription)")
         }
+    }
+    
+    func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+        
+        // Manage the photo shoot here
     }
     
     func customizeLayout() {
